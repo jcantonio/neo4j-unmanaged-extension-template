@@ -39,15 +39,6 @@ public class MyService {
     @GET
     @Path("/warmup")
     public String warmUp(@Context GraphDatabaseService db) {
-		for ( Node node : db.getAllNodes() ) {
-		   IteratorUtil.count( node.getRelationships() );
-		 }
-	    return "Warmed up and ready to go!";
-    }
-
-    @GET
-    @Path("/warmup2")
-    public String warmUp2(@Context GraphDatabaseService db) {
 		Node start;
 		for ( Node n : GlobalGraphOperations.at( db ).getAllNodes() ) {
 		   n.getPropertyKeys();
@@ -57,15 +48,41 @@ public class MyService {
         }
         for ( Relationship r : GlobalGraphOperations.at( db ).getAllRelationships() ) {
           start = r.getStartNode();
+          r.getPropertyKeys();
         }
-    return "Warmed up and ready to go too!";
+    return "Warmed up and ready to go!";
     }
-
 
     @GET
     @Path("/astar/{from}/{to}")
     @Produces("application/json")
     public Response routeAStar(@PathParam("from") Long from, @PathParam("to") Long to, @Context GraphDatabaseService db) throws IOException {
+       Node nodeA = db.getNodeById(from);
+       Node nodeB = db.getNodeById(to);
+
+  	   EstimateEvaluator<Double> estimateEvaluator = new EstimateEvaluator<Double>()
+	        {
+	            public Double getCost( final Node node, final Node goal )
+	            {
+	                double dx = (Double) node.getProperty( "x" ) - (Double) goal.getProperty( "x" );
+	                double dy = (Double) node.getProperty( "y" ) - (Double) goal.getProperty( "y" );
+	                double result = Math.sqrt( Math.pow( dx, 2 ) + Math.pow( dy, 2 ) );
+	                return result;
+	            }
+	        };
+	        PathFinder<WeightedPath> astar = GraphAlgoFactory.aStar(
+	                Traversal.expanderForAllTypes(),
+	                CommonEvaluators.doubleCostEvaluator( "time" ), estimateEvaluator );
+	        WeightedPath path = astar.findSinglePath( nodeA, nodeB );
+
+		    return Response.ok().entity( path.toString() ).build();
+    }
+	
+	
+    @GET
+    @Path("/astar2/{from}/{to}")
+    @Produces("application/json")
+    public Response routeAStar2(@PathParam("from") Long from, @PathParam("to") Long to, @Context GraphDatabaseService db) throws IOException {
        Node nodeA = db.getNodeById(from);
        Node nodeB = db.getNodeById(to);
 
@@ -115,8 +132,8 @@ public class MyService {
 	        //return Response.ok().entity(WeightedPathRepresentation(path)).build();
             //return Response.ok().entity(new WeightedPathRepresentation( path )).build();
             //return Response.ok().entity(new PathRepresentation( path ).toString()).build();
-            //return Response.ok().entity(objectMapper.writeValueAsString(astarMap)).build();
-            return Response.ok().entity(objectMapper.writeValueAsString(new WeightedPathRepresentation( path ))).build();
+            return Response.ok().entity(objectMapper.writeValueAsString(astarMap)).build();
+            //return Response.ok().entity(objectMapper.writeValueAsString(new WeightedPathRepresentation( path ))).build();
 }
 
     @GET
