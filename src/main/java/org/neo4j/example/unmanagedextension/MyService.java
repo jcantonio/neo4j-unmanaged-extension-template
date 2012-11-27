@@ -97,7 +97,7 @@ public class MyService {
 	            }
 	        };
 	        PathFinder<WeightedPath> astar = GraphAlgoFactory.aStar(
-	                Traversal.expanderForAllTypes(),
+	                Traversal.pathExpanderForAllTypes(),
 	                CommonEvaluators.doubleCostEvaluator( "time" ), estimateEvaluator );
 	        WeightedPath path = astar.findSinglePath( nodeA, nodeB );
 	
