@@ -60,7 +60,7 @@ public class MyService {
        Node nodeA = db.getNodeById(from);
        Node nodeB = db.getNodeById(to);
 
-  	   EstimateEvaluator<Double> estimateEvaluator = new EstimateEvaluator<Double>()
+       EstimateEvaluator<Double> estimateEvaluator = new EstimateEvaluator<Double>()
 	        {
 	            public Double getCost( final Node node, final Node goal )
 	            {
@@ -70,12 +70,12 @@ public class MyService {
 	                return result;
 	            }
 	        };
-	        PathFinder<WeightedPath> astar = GraphAlgoFactory.aStar(
-	                Traversal.expanderForAllTypes(),
-	                CommonEvaluators.doubleCostEvaluator( "time" ), estimateEvaluator );
-	        WeightedPath path = astar.findSinglePath( nodeA, nodeB );
+       PathFinder<WeightedPath> astar = GraphAlgoFactory.aStar(
+           Traversal.expanderForAllTypes(),
+	       CommonEvaluators.doubleCostEvaluator( "time" ), estimateEvaluator );
+       WeightedPath path = astar.findSinglePath( nodeA, nodeB );
 
-		    return Response.ok().entity( path.toString() ).build();
+       return Response.ok().entity( path.toString() ).build();
     }
 	
 	
@@ -107,7 +107,11 @@ public class MyService {
 			List<Object> nodes = new ArrayList<Object>();
 			for ( Node node : path.nodes() )
 			    {
-			      nodes.add(node.getId());
+				 Map<String, Object> nodeMap = new HashMap<String, Object>();
+           		 nodeMap.put("id", node.getId());
+           		 nodeMap.put("x", node.getProperty("x"));
+           		 nodeMap.put("y", node.getProperty("y"));
+			     nodes.add(nodeMap);
 	            }
 			astarMap.put("nodes", nodes);
 			
@@ -124,16 +128,9 @@ public class MyService {
 	            }
 
 			astarMap.put("relationships", relationships);
-            
-            //PathRepresentationCreator representationCreator = WEIGHTED_PATH_REPRESENTATION_CREATOR;
 
 			ObjectMapper objectMapper = new ObjectMapper();
-	        //return Response.ok().entity(objectMapper.writeValueAsString(path.toString())).build();
-	        //return Response.ok().entity(WeightedPathRepresentation(path)).build();
-            //return Response.ok().entity(new WeightedPathRepresentation( path )).build();
-            //return Response.ok().entity(new PathRepresentation( path ).toString()).build();
             return Response.ok().entity(objectMapper.writeValueAsString(astarMap)).build();
-            //return Response.ok().entity(objectMapper.writeValueAsString(new WeightedPathRepresentation( path ))).build();
 }
 
     @GET
